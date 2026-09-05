@@ -83,4 +83,46 @@
     };
     probe.src = url;
   });
+
+  /* ---------- Animated trust counters ---------- */
+  var counters = document.querySelectorAll('.trust-num[data-count]');
+  if (counters.length && 'IntersectionObserver' in window) {
+    var counterIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var el = entry.target;
+        var target = parseInt(el.getAttribute('data-count'), 10);
+        var duration = 1800;
+        var start = performance.now();
+        function tick(now) {
+          var elapsed = now - start;
+          var progress = Math.min(elapsed / duration, 1);
+          var eased = 1 - Math.pow(1 - progress, 3);
+          el.textContent = Math.round(eased * target);
+          if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+        counterIO.unobserve(el);
+      });
+    }, { threshold: 0.3 });
+    counters.forEach(function (c) { counterIO.observe(c); });
+  }
+
+  /* ---------- Quote form → WhatsApp redirect ---------- */
+  var quoteForm = document.getElementById('quoteForm');
+  if (quoteForm) {
+    quoteForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var name = document.getElementById('qfName').value.trim();
+      var phone = document.getElementById('qfPhone').value.trim();
+      var interest = document.getElementById('qfInterest').value || 'Not specified';
+      var message = document.getElementById('qfMessage').value.trim();
+      var text = 'Hi Heaven Furniture Mart!%0A%0A'
+               + 'Name: ' + encodeURIComponent(name) + '%0A'
+               + 'Phone: ' + encodeURIComponent(phone) + '%0A'
+               + 'Interest: ' + encodeURIComponent(interest) + '%0A'
+               + 'Message: ' + encodeURIComponent(message || 'N/A');
+      window.open('https://wa.me/8801960481983?text=' + text, '_blank');
+    });
+  }
 })();
